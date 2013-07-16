@@ -15,6 +15,7 @@
   <inherits name='com.google.web.bindery.event.EventBinder'/>
   <inherits name="com.google.gwt.json.JSON" />
   
+  
   <!-- Specify the app entry point class.                         -->
   <entry-point class='ie.sortons.friendsevents.client.Friends__Events'/>
 

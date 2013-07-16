@@ -18,8 +18,6 @@ public class LoginEvent extends GenericEvent {
 		  
 		  // Parse the json to an object
 		  loginObject = response.cast();
-		
-
 	  }
 
 	  public JavaScriptObject getResponse() {

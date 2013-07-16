@@ -24,8 +24,8 @@ public class Friends__Events implements EntryPoint {
 	private FBCore fbCore = GWT.create(FBCore.class);
 
 	
-	// public String APPID = "123069381111681"; // sortonsevents
-	public String APPID = "251403644880972"; // sortonsdev
+	public String APPID = "123069381111681"; // sortonsevents
+	// public String APPID = "251403644880972"; // sortonsdev
 	
 	private String requiredPermissions = "user_location,friends_location,user_events,friends_events";
 
@@ -59,6 +59,11 @@ public class Friends__Events implements EntryPoint {
 	    menuPresenter.setView(menuBar);
 	    app.add(menuBar);
 	    
+	    // Create the map presenter
+	    SimplePanel mapPanel = new SimplePanel();
+	    MapPresenter mapPresenter = new MapPresenter(eventBus, mapPanel);
+	    app.add(mapPanel);
+	    
 	    // Create the events presenter
 	    EventsPresenter eventsListPanel = new EventsPresenter(eventBus);
 		FlowPanel resultPanel = new FlowPanel();
@@ -68,11 +73,11 @@ public class Friends__Events implements EntryPoint {
 		RootPanel.get("gwt").add(app);
 
 		app.getElement().getStyle().setMarginBottom(75, Unit.PX);
-
 	    
 	    // Tell the Facebook canvas the initial size
 		Canvas.setSize(640,800);
 
+		mapPresenter.go();
 		
 		LoginController loginController = new LoginController(eventBus, requiredPermissions);
 		

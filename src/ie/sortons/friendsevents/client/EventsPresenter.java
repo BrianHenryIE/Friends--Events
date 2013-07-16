@@ -1,5 +1,6 @@
 package ie.sortons.friendsevents.client;
 
+import ie.sortons.friendsevents.client.events.EventsReceivedEvent;
 import ie.sortons.friendsevents.client.events.PermissionsPresentEvent;
 import ie.sortons.friendsevents.client.facebook.Canvas;
 import ie.sortons.friendsevents.client.facebook.overlay.DataObject;
@@ -38,7 +39,10 @@ class EventsPresenter {
 
 	private HasWidgets view;
 
+	private EventBus eventBus;
+
 	EventsPresenter(EventBus eventBus) {
+		this.eventBus = eventBus;
 		eventBinder.bindEventHandlers(this, eventBus);
 		calculateStartTime();
 	}
@@ -50,15 +54,10 @@ class EventsPresenter {
 	@EventHandler
 	void permissionsPresentLetsGo(PermissionsPresentEvent event) {
 		System.out.println("PermissionsPresentEvent seen by EventsPresenter");
-		getPageOfEvents(view);
+		getPageOfEvents();
 	}
 
-	private int pageFrom = 0;
-	
-	private JsArray<FqlEvent> events;	
-
 	private DataObject dataObject;
-
 
 	private String startTime;
 	private Date now = new Date();
@@ -85,20 +84,21 @@ class EventsPresenter {
 	
 	}
 	
-	private String sourceIds = "SELECT uid FROM user WHERE uid IN (SELECT uid FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND current_location) AND current_location.id IN (SELECT current_location.id FROM user WHERE uid = me() AND current_location)";
+	// Friends with the same current location
+	// private String sourceIds = "SELECT uid FROM user WHERE uid IN (SELECT uid FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND current_location) AND current_location.id IN (SELECT current_location.id FROM user WHERE uid = me() AND current_location)";
 
-	private void getPageOfEvents(final HasWidgets view2) {
+	// All friends
+	private String sourceIds = "SELECT uid2 FROM friend WHERE uid1 = me()";
+	
+	private void getPageOfEvents() {
 
-		System.out.println("Requesting page " + ((pageFrom + 100) / 100));
-
-		String fql = "SELECT name, location, eid, start_time, end_time, pic_square FROM event WHERE eid IN (SELECT eid FROM event_member WHERE start_time > '"
+		String fql = "SELECT name, location, venue, eid, start_time, end_time, pic_square FROM event WHERE eid IN (SELECT eid FROM event_member WHERE start_time > '"
 				+ startTime
 				+ "' AND uid IN ("
 				+ sourceIds
-				+ ")) ORDER BY start_time LIMIT 100"; // + pageFrom + ","+
+				+ ")) ORDER BY start_time LIMIT 250"; // + pageFrom + ","+
 														// (pageFrom+100);
-
-		System.out.println(fql);
+		// start_time is used instead of paging.
 
 		String method = "fql.query";
 		JSONObject query = new JSONObject();
@@ -109,132 +109,38 @@ class EventsPresenter {
 			new AsyncCallback<JavaScriptObject>() {
 				public void onSuccess(JavaScriptObject response) {
 
-					System.out.println("Page " + ((pageFrom + 100) / 100)
-							+ " of events received");
+					JsArray<FqlEvent> events;	
 
 					dataObject = response.cast();
 
-					JSONObject jo = new JSONObject(response);
-					System.out.println(jo.toString());
-
-					System.out.println("response cast to DataObject");
-
 					events = dataObject.getData().cast();
-
-					System.out
-							.println("DataObject cast to JsArray<FQLEvent>");
 
 					System.out.println("events.length() = "
 							+ events.length());
 
-					// for ( int i = pageFrom; i < events.length(); i++ ) {
-					for (int i = 0; i < events.length(); i++) {
+					eventBus.fireEvent(new EventsReceivedEvent(events));
+					
+					
 
-						if ((events.get(i).getEndTime() != null)
-								&& (events.get(i).getEndTimeDate()
-										.compareTo(now) > 0)) {
-
-							System.out.println("           "
-									+ events.get(i).getEid()
-									+ " : end time after now");
-
-							view2.add(new EventWidget(events.get(i)));
-
-						} else if ((events.get(i).getEndTime() == null)
-								&& (events.get(i).getStartTimeDayDate() == today)) {
-
-							System.out.println("           "
-									+ events.get(i).getEid()
-									+ " : end time null, start time today");
-
-							view2.add(new EventWidget(events.get(i)));
-
-						} else if ((events.get(i).getEndTime() == null)
-								&& (events.get(i).getStartTimeDayDate()
-										.compareTo(today) > 0)) {
-
-							System.out
-									.println("           "
-											+ events.get(i).getEid()
-											+ " : end time null, start time in the future");
-
-							view2.add(new EventWidget(events.get(i)));
-
-						}/*
-						 * else if( (events.get(i).getEndTime()!=null) &&
-						 * (events.get(i).getEndTimeDate().compareTo(now) <
-						 * 0) ) {
-						 * 
-						 * System.out.println("           " +
-						 * events.get(i).getEid() +
-						 * " : end time before now");
-						 * 
-						 * 
-						 * 
-						 * } else if( (events.get(i).getEndTime()==null) &&
-						 * (
-						 * events.get(i).getStartTimeDayDate().compareTo(today
-						 * )<0) ) {
-						 * 
-						 * System.out.println("           " +
-						 * events.get(i).getEid() +
-						 * " : end time null, start time yesterday");
-						 * 
-						 * } else {
-						 * 
-						 * // what the hell
-						 * 
-						 * System.out.println("EVENT " + i + ": " +
-						 * events.get(i).getName());
-						 * 
-						 * System.out.println("           end_time " +
-						 * events.get(i).getEndTimeDate().toString());
-						 * System.out.println("           now "+
-						 * now.toString());
-						 * System.out.println("           today "+
-						 * today.toString());
-						 * System.out.println("           getStartTimeDayDate "
-						 * +events.get(i).getStartTimeDayDate().toString());
-						 * 
-						 * 
-						 * System.out.println("           " +
-						 * events.get(i).getEid());
-						 * System.out.println("           " +
-						 * events.get(i).getStartTimeString());
-						 * System.out.println("           " +
-						 * events.get(i).getPic_square());
-						 * System.out.println("           " +
-						 * events.get(i).getLocation());
-						 * 
-						 * }
-						 */
-					}
-
-					Canvas.setSize();
-
-					startTime = events.get((events.length() - 1))
-							.getStartTime();
-
-					System.out.println("events.length() % 100 = "
-							+ (events.length() % 100));
+					System.out.println("events.length() % 250 = "
+							+ (events.length() % 250));
 
 					// If it looks like there are more events, recurse.
 					if (events.length() > 0) {
 
-						pageFrom = pageFrom + 100;
-						getPageOfEvents(view2);
+						// update the start time for the next run
+						startTime = events.get((events.length() - 1)).getStartTime();
+						
+						getPageOfEvents();
 
 					} else {
 
-						// if there are no more events... we want to resize
-						// the window here.
-
+						// resize the window one last time
 						Timer timer = new Timer() {
 							public void run() {
 								Canvas.setSize();
 							}
 						};
-
 						// Execute the timer 2 seconds in the future
 						timer.schedule(2000);
 
@@ -249,6 +155,92 @@ class EventsPresenter {
 				}
 			});
 
+		
 	}
 
+	
+	
+	@EventHandler
+	void eventsReceived(EventsReceivedEvent event) {
+		
+		JsArray<FqlEvent> events = event.getEvents();
+		
+		for (int i = 0; i < events.length(); i++) {
+
+			if ((events.get(i).getEndTime() != null)
+					&& (events.get(i).getEndTimeDate()
+							.compareTo(now) > 0)) {
+
+				// System.out.println("           " + events.get(i).getEid() + " : end time after now");
+
+				view.add(new EventWidget(events.get(i)));
+
+			} else if ((events.get(i).getEndTime() == null)
+					&& (events.get(i).getStartTimeDayDate() == today)) {
+
+				// System.out.println("           " + events.get(i).getEid() + " : end time null, start time today");
+
+				view.add(new EventWidget(events.get(i)));
+
+			} else if ((events.get(i).getEndTime() == null)
+					&& (events.get(i).getStartTimeDayDate()
+							.compareTo(today) > 0)) {
+
+				// System.out.println("           " + events.get(i).getEid() + " : end time null, start time in the future");
+
+				view.add(new EventWidget(events.get(i)));
+
+			}/*
+			 * else if( (events.get(i).getEndTime()!=null) &&
+			 * (events.get(i).getEndTimeDate().compareTo(now) <
+			 * 0) ) {
+			 * 
+			 * System.out.println("           " +
+			 * events.get(i).getEid() +
+			 * " : end time before now");
+			 * 
+			 * 
+			 * 
+			 * } else if( (events.get(i).getEndTime()==null) &&
+			 * (
+			 * events.get(i).getStartTimeDayDate().compareTo(today
+			 * )<0) ) {
+			 * 
+			 * System.out.println("           " +
+			 * events.get(i).getEid() +
+			 * " : end time null, start time yesterday");
+			 * 
+			 * } else {
+			 * 
+			 * // what the hell
+			 * 
+			 * System.out.println("EVENT " + i + ": " +
+			 * events.get(i).getName());
+			 * 
+			 * System.out.println("           end_time " +
+			 * events.get(i).getEndTimeDate().toString());
+			 * System.out.println("           now "+
+			 * now.toString());
+			 * System.out.println("           today "+
+			 * today.toString());
+			 * System.out.println("           getStartTimeDayDate "
+			 * +events.get(i).getStartTimeDayDate().toString());
+			 * 
+			 * 
+			 * System.out.println("           " +
+			 * events.get(i).getEid());
+			 * System.out.println("           " +
+			 * events.get(i).getStartTimeString());
+			 * System.out.println("           " +
+			 * events.get(i).getPic_square());
+			 * System.out.println("           " +
+			 * events.get(i).getLocation());
+			 * 
+			 * }
+			 */
+		}
+
+		Canvas.setSize();
+
+	}
 }

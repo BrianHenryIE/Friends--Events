@@ -88,7 +88,6 @@ class LoginController {
 	public static void login(String requiredPermissions) {
 		fbCore.login(new AsyncCallback<JavaScriptObject>(){
 	 		public void onSuccess ( JavaScriptObject response ) {
-	 			System.out.println("firing logg in event");
 	 			eventBus.fireEvent(new LoginEvent(response));
 	 		}
 	 	 	public void onFailure(Throwable caught) {

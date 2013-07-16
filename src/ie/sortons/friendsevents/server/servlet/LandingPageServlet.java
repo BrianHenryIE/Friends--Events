@@ -26,26 +26,30 @@ public class LandingPageServlet extends HttpServlet {
 	            
 		out = response.getWriter();
 		
+		
 		// Write out Head 
-		out.print("<!doctype html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-		out.print("<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n\n");
-		out.print("<script src=\"http://connect.facebook.net/en_US/all.js\"></script>\n\n");
-		out.write("<script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script>\n\n");
-		out.write("</head>\n");
-
-		// Body: special div FB and GWT
-		out.print("<body style=\"width: 750px;\">\n\n");
-
-		// Body: special div FB and GWT
-		out.print("<div style=\"width: 500px; border: 1px solid black;\">\n\n");
+		out.print("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> \n" + // As specified for Bing Maps API
+				"<html xmlns=\"http://www.w3.org/1999/xhtml\" style=\"overflow: hidden\"> \n\n" +
+				"<head> \n\n" +
+				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/> \n\n" +
+				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\"//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0\"></script> \n\n" + // Bing Maps API
+				"  <script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script> \n\n" + // Check the GWT cache and fetch the correct JS
+				"  <script src=\"//connect.facebook.net/en_US/all.js\"></script> \n\n" + // Facebook API
+				"</head> \n\n");
 		
-		out.print("</div>\n\n");
+		// "  <script charset=\"UTF-8\" type=\"text/javascript\" src=\"//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0\"></script> \n\n" + // Bing Maps API
 		
-		out.print("<div id=\"fb-root\" style=\"width: 750px;\" ></div>\n\n" +
-				"<div id=\"gwt\" style=\"width: 750px;\"></div>\n\n");
-
-		// End
-		out.print("</body>\n</html>");
+		// TODO
+		// Check the Bing Maps SSL setup. Supposedly required &s=1 at the end of the URL
+		// http://msdn.microsoft.com/en-us/library/gg427624.aspx
+		
+		// Write out Body
+		out.print("<body style=\"overflow=hidden;\"> \n\n" +
+				"  <div id='fb-root'></div> \n\n" + // required for Facebook API
+				"  <div id=\"gwt\"></div> \n\n" + // root of document for GWT
+				"</body> \n");
+		
+		out.print("</html>");
 		out.flush();
 	}
 	
@@ -70,19 +74,27 @@ public class LandingPageServlet extends HttpServlet {
 		out = response.getWriter();
 		
 		// Write out Head 
-		out.print("<!doctype html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" style=\"overflow: hidden\">\n<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n\n");
+		out.print("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> \n" + // As specified for Bing Maps API
+				"<html xmlns=\"http://www.w3.org/1999/xhtml\" style=\"overflow: hidden\"> \n\n" +
+				"<head> \n\n" +
+				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/> \n\n" +
+				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\"//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0\"></script> \n\n" + // Bing Maps API
+				"  <script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script> \n\n" + // Check the GWT cache and fetch the correct JS
+				"  <script src=\"//connect.facebook.net/en_US/all.js\"></script> \n\n" + // Facebook API
+				"</head> \n\n");
 				
-		out.print("<script src=\"http://connect.facebook.net/en_US/all.js\"></script>\n\n");
-		out.write("<script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script>\n\n");
-		out.write("</head>\n");
+		// TODO
+		// Check the Bing Maps SSL setup. Supposedly required &s=1 at the end of the URL
+		// http://msdn.microsoft.com/en-us/library/gg427624.aspx
 		
-		// Body: special div FB and GWT
-		out.print("<body style=\"overflow=hidden;\">\n\n");
-		out.print("<div id=\"fb-root\"></div>\n\n");
-		out.print("<div id=\"gwt\"></div>\n\n");
+		// Write out Body
+		out.print("<body style=\"overflow=hidden;\"> \n\n" +
+				"  <div id='fb-root'></div> \n\n" + // required for Facebook API
+				"  <div id=\"gwt\"></div> \n\n" + // root of document for GWT
+				"</body> \n");
 		
-		// End
-		out.print("</body>\n</html>");
+		out.print("</html>");
+		
 		out.flush();
 	}
 
