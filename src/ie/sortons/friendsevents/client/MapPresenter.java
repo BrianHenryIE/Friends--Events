@@ -3,10 +3,9 @@ package ie.sortons.friendsevents.client;
 
 import ie.sortons.friendsevents.client.events.EventsReceivedEvent;
 import ie.sortons.friendsevents.client.gwtbingmaps.BingMap;
-import ie.sortons.friendsevents.client.gwtbingmaps.BingMapsAPI;
-import ie.sortons.friendsevents.client.gwtbingmaps.BingMapsAPI.InfoboxOptions;
-import ie.sortons.friendsevents.client.gwtbingmaps.BingMapsAPI.MicrosoftMapsInfobox;
-import ie.sortons.friendsevents.client.gwtbingmaps.BingMapsAPI.MicrosoftMapsLocation;
+import ie.sortons.friendsevents.client.gwtbingmaps.Infobox;
+import ie.sortons.friendsevents.client.gwtbingmaps.InfoboxOptions;
+import ie.sortons.friendsevents.client.gwtbingmaps.Location;
 import ie.sortons.friendsevents.client.resources.Resources;
 import ie.sortons.friendsevents.client.widgets.MapEventWidget;
 
@@ -20,7 +19,7 @@ import com.google.web.bindery.event.shared.binder.EventHandler;
 
 public class MapPresenter extends Composite  {
 
-	private final String bingMapsAPIkey = "ApmYYZr2urnVJhMJMOaMgjhH7lAISlyMpSEkIs6cqxYMwg85epCC6c1ZXgWIWFao";
+	private final String credentials = "ApmYYZr2urnVJhMJMOaMgjhH7lAISlyMpSEkIs6cqxYMwg85epCC6c1ZXgWIWFao";
 	
 	interface MyEventBinder extends EventBinder<MapPresenter> {
 	}
@@ -34,9 +33,13 @@ public class MapPresenter extends Composite  {
 	public MapPresenter(SimpleEventBus eventBus, HasWidgets view) {
 		eventBinder.bindEventHandlers(this, eventBus);
 		this.view = view;
+		
+		/* From Facebook:
+		map_options={"lat":37.867523421732,"lon":-122.25889284665,"enableSearchLogo":false,"credentials":"AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MFqksg","showDashboard":false,"showCopyright":false,"disableKeyboardInput":true,"disableMouseInput":false,"disableTouchInput":false,"mapTypeId":"fb","showScalebar":false,"disableBirdseye":false,"disableZooming":false,"disablePanning":false,"labelOverlay":0,"width":600,"height":500,"zoom":15}
+		 */
 
 		// Set up the blank map
-		mapDiv = new BingMap(bingMapsAPIkey, "eventsMap");
+		mapDiv = new BingMap(credentials, "eventsMap");
 		
 		mapDiv.setSize("750px", "400px");
 		mapDiv.getElement().getStyle().setPosition(Position.RELATIVE);
@@ -67,11 +70,11 @@ public class MapPresenter extends Composite  {
 				
 				MapEventWidget item = new MapEventWidget(event.getEvents().get(i));
 
-				MicrosoftMapsLocation location = BingMapsAPI.microsoftMapsLocation(event.getEvents().get(i).getVenue().getLatitude(), event.getEvents().get(i).getVenue().getLongitude());
+				Location location = Location.getMicrosoftMapsLocation(event.getEvents().get(i).getVenue().getLatitude(), event.getEvents().get(i).getVenue().getLongitude());
 				
-				InfoboxOptions infoboxOptions = BingMapsAPI.setInfoboxOptions(400, 100, null, true, 0, true, false, null, null, item.getElement().getInnerHTML());
+				InfoboxOptions infoboxOptions = InfoboxOptions.getInfoboxOptions(400, 100, null, true, 0, true, false, null, null, item.getElement().getInnerHTML());
 				
-				MicrosoftMapsInfobox itemInfobox = BingMapsAPI.createInfoBox(location, infoboxOptions);
+				Infobox itemInfobox = Infobox.getInfoBox(location, infoboxOptions);
 		
 				mapDiv.addPinToMap(location, Resources.INSTANCE.mapPushPin().getSafeUri().asString(), itemInfobox);
 			}

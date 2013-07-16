@@ -24,8 +24,8 @@ public class Friends__Events implements EntryPoint {
 	private FBCore fbCore = GWT.create(FBCore.class);
 
 	
-	public String APPID = "123069381111681"; // sortonsevents
-	// public String APPID = "251403644880972"; // sortonsdev
+	// public String APPID = "123069381111681"; // sortonsevents
+	public String APPID = "251403644880972"; // sortonsdev
 	
 	private String requiredPermissions = "user_location,friends_location,user_events,friends_events";
 

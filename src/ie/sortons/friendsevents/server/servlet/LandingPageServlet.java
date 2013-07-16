@@ -24,6 +24,16 @@ public class LandingPageServlet extends HttpServlet {
 	
 		System.out.println("Servlet execution... GET");
 	            
+
+		String mapsUrl = "http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0";
+
+		if(request.getHeader("referer")!=null){
+			String referrer = request.getHeader("referer"); 
+			System.out.println("Referrer: " + referrer);
+			if(referrer.contains("https")){
+				mapsUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1";
+			}
+		}
 		out = response.getWriter();
 		
 		
@@ -32,7 +42,7 @@ public class LandingPageServlet extends HttpServlet {
 				"<html xmlns=\"http://www.w3.org/1999/xhtml\" style=\"overflow: hidden\"> \n\n" +
 				"<head> \n\n" +
 				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/> \n\n" +
-				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\"//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0\"></script> \n\n" + // Bing Maps API
+				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\""+mapsUrl+"\"></script> \n\n" + // Bing Maps API
 				"  <script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script> \n\n" + // Check the GWT cache and fetch the correct JS
 				"  <script src=\"//connect.facebook.net/en_US/all.js\"></script> \n\n" + // Facebook API
 				"</head> \n\n");
@@ -68,8 +78,15 @@ public class LandingPageServlet extends HttpServlet {
 		System.out.println("gson'd signed_request: " + signedrequest.toJsonString());
 		
 		
-		String referrer = request.getHeader("referer"); 
-		System.out.println("Referrer: " + referrer);
+		String mapsUrl = "http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0";
+
+		if(request.getHeader("referer")!=null){
+			String referrer = request.getHeader("referer"); 
+			System.out.println("Referrer: " + referrer);
+			if(referrer.contains("https")){
+				mapsUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1";
+			}
+		}
 		
 		out = response.getWriter();
 		
@@ -78,7 +95,7 @@ public class LandingPageServlet extends HttpServlet {
 				"<html xmlns=\"http://www.w3.org/1999/xhtml\" style=\"overflow: hidden\"> \n\n" +
 				"<head> \n\n" +
 				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/> \n\n" +
-				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\"//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0\"></script> \n\n" + // Bing Maps API
+				"  <script charset=\"UTF-8\" type=\"text/javascript\" src=\""+mapsUrl+"\"></script> \n\n" + // Bing Maps API
 				"  <script type=\"text/javascript\" language=\"javascript\" src=\"../friends__events/friends__events.nocache.js\"></script> \n\n" + // Check the GWT cache and fetch the correct JS
 				"  <script src=\"//connect.facebook.net/en_US/all.js\"></script> \n\n" + // Facebook API
 				"</head> \n\n");

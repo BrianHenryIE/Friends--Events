@@ -85,10 +85,10 @@ class EventsPresenter {
 	}
 	
 	// Friends with the same current location
-	// private String sourceIds = "SELECT uid FROM user WHERE uid IN (SELECT uid FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND current_location) AND current_location.id IN (SELECT current_location.id FROM user WHERE uid = me() AND current_location)";
+	private String sourceIds = "SELECT uid FROM user WHERE uid IN (SELECT uid FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) AND current_location) AND current_location.id IN (SELECT current_location.id FROM user WHERE uid = me() AND current_location)";
 
 	// All friends
-	private String sourceIds = "SELECT uid2 FROM friend WHERE uid1 = me()";
+	// private String sourceIds = "SELECT uid2 FROM friend WHERE uid1 = me()";
 	
 	private void getPageOfEvents() {
 
