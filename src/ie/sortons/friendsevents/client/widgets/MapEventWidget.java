@@ -1,6 +1,6 @@
 package ie.sortons.friendsevents.client.widgets;
 
-import ie.sortons.friendsevents.client.facebook.overlay.FqlEvent;
+import ie.sortons.gwtfbplus.client.fql.FqlEvent;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;

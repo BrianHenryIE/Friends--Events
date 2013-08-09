@@ -1,12 +1,12 @@
 package ie.sortons.friendsevents.client;
 
-import ie.sortons.friendsevents.client.events.LoginEvent;
-import ie.sortons.friendsevents.client.events.NotLoggedInEvent;
-import ie.sortons.friendsevents.client.events.PermissionsEvent;
-import ie.sortons.friendsevents.client.events.PermissionsPresentEvent;
-import ie.sortons.friendsevents.client.facebook.overlay.DataObject;
-import ie.sortons.friendsevents.client.facebook.overlay.Permissions;
-import ie.sortons.friendsevents.client.gwtfb.FBCore;
+import ie.sortons.friendsevents.client.appevents.LoginEvent;
+import ie.sortons.friendsevents.client.appevents.NotLoggedInEvent;
+import ie.sortons.friendsevents.client.appevents.PermissionsEvent;
+import ie.sortons.friendsevents.client.appevents.PermissionsNotPresentEvent;
+import ie.sortons.friendsevents.client.appevents.PermissionsPresentEvent;
+import ie.sortons.gwtfbplus.client.overlay.DataObject;
+import ie.sortons.gwtfbplus.client.overlay.Permissions;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
@@ -14,8 +14,9 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
+import com.gwtfb.sdk.FBCore;
 
-class LoginController {
+public class LoginController {
 
 	private static FBCore fbCore = GWT.create(FBCore.class);
 	
@@ -81,6 +82,9 @@ class LoginController {
 			// TODO
 			// Alert the user that we need more permissions
 			
+			// for now, just show the login screen
+			eventBus.fireEvent(new PermissionsNotPresentEvent());
+			
 		}
 	}
 	
@@ -106,6 +110,7 @@ class LoginController {
 	 		}
 	 	 	public void onFailure(Throwable caught) {
  	 			// Print something on the screen about no response from fb.
+	 	 		System.out.println("LoginController.getLoginStatus onFailure");
  	 			throw new RuntimeException ( caught );
  			}
 		} );

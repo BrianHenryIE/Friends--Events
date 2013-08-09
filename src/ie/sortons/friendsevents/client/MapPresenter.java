@@ -1,21 +1,37 @@
 package ie.sortons.friendsevents.client;
 
 
-import ie.sortons.friendsevents.client.events.EventsReceivedEvent;
-import ie.sortons.friendsevents.client.gwtbingmaps.BingMap;
-import ie.sortons.friendsevents.client.gwtbingmaps.Infobox;
-import ie.sortons.friendsevents.client.gwtbingmaps.InfoboxOptions;
-import ie.sortons.friendsevents.client.gwtbingmaps.Location;
-import ie.sortons.friendsevents.client.resources.Resources;
+import ie.brianhenry.gwtbingmaps.client.api.BingMap;
+import ie.brianhenry.gwtbingmaps.client.api.Events;
+import ie.brianhenry.gwtbingmaps.client.api.Infobox;
+import ie.brianhenry.gwtbingmaps.client.api.InfoboxOptions;
+import ie.brianhenry.gwtbingmaps.client.api.Location;
+import ie.brianhenry.gwtbingmaps.client.api.MapOptions;
+import ie.brianhenry.gwtbingmaps.client.api.Pushpin;
+import ie.brianhenry.gwtbingmaps.client.api.PushpinOptions;
+import ie.brianhenry.gwtbingmaps.client.api.ViewOptions;
+import ie.sortons.friendsevents.client.appevents.MapViewChangedEvent;
+import ie.sortons.friendsevents.client.appevents.PermissionsPresentEvent;
+import ie.sortons.friendsevents.client.appevents.UpdatedMapItemsEvent;
 import ie.sortons.friendsevents.client.widgets.MapEventWidget;
+import ie.sortons.gwtfbplus.client.fql.FqlEvent;
+import ie.sortons.gwtfbplus.client.fql.FqlUser;
+import ie.sortons.gwtfbplus.client.newresources.Resources;
+import ie.sortons.gwtfbplus.client.overlay.DataObject;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArray;
 import com.google.gwt.dom.client.Style.Position;
 import com.google.gwt.event.shared.SimpleEventBus;
+import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.json.client.JSONString;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
+import com.gwtfb.sdk.FBCore;
 
 public class MapPresenter extends Composite  {
 
@@ -26,61 +42,153 @@ public class MapPresenter extends Composite  {
 
 	private static final MyEventBinder eventBinder = GWT.create(MyEventBinder.class);
 
+	@SuppressWarnings("unused")
 	private HasWidgets view;
 	
 	private BingMap mapDiv;
+
+	private SimpleEventBus eventBus;
+
+	private FBCore fbCore = GWT.create(FBCore.class);
+	
 	
 	public MapPresenter(SimpleEventBus eventBus, HasWidgets view) {
 		eventBinder.bindEventHandlers(this, eventBus);
 		this.view = view;
+		this.eventBus = eventBus;
 		
-		/* From Facebook:
-		map_options={"lat":37.867523421732,"lon":-122.25889284665,"enableSearchLogo":false,"credentials":"AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MFqksg","showDashboard":false,"showCopyright":false,"disableKeyboardInput":true,"disableMouseInput":false,"disableTouchInput":false,"mapTypeId":"fb","showScalebar":false,"disableBirdseye":false,"disableZooming":false,"disablePanning":false,"labelOverlay":0,"width":600,"height":500,"zoom":15}
-		 */
-
+		boolean enableSearchLogo = false;
+		boolean showDashboard = true;
+		boolean showMapTypeSelector = false;
+		boolean showScalebar = false;
+		boolean useInertia = false;
+		
+		MapOptions mapOptions = MapOptions.getMapOptions(credentials, null, null, null, null, null, null, null, null, null, null, null, enableSearchLogo, null, null, null, null, showDashboard, showMapTypeSelector, showScalebar, null, useInertia);
+		
+		// TODO
+		// Figure out what zoomed out is for people who don't have their current location set
+	 	Location center = Location.newLocation(35.906849,-118.937988);
+	 	String mapTypeId = "fb";
+	 	int zoom = 12;
+	 	
+		ViewOptions viewOptions = ViewOptions.newViewOptions(null, center, null, null, mapTypeId, null, zoom);
+		
+		
 		// Set up the blank map
-		mapDiv = new BingMap(credentials, "eventsMap");
+		mapDiv = new BingMap("eventsMap", mapOptions, viewOptions);
+		 	
 		
-		mapDiv.setSize("750px", "400px");
+		mapDiv.setSize("760px", "400px");
 		mapDiv.getElement().getStyle().setPosition(Position.RELATIVE);
 		
 		view.add(mapDiv);
+		
+	}
+	
+	@EventHandler
+	void getUserLocation(PermissionsPresentEvent event) {
+		System.out.println("PermissionsPresentEvent seen by MapPresenter/getUserLocation");
+		
+		String fql = "SELECT current_location.latitude, current_location.longitude FROM user WHERE uid = me()";
+				
+		String method = "fql.query";
+		JSONObject query = new JSONObject();
+		query.put("method", new JSONString(method));
+		query.put("query", new JSONString(fql));
+			
+		fbCore.api(query.getJavaScriptObject(),
+			new AsyncCallback<JavaScriptObject>() {
+				public void onSuccess(JavaScriptObject response) {
+					
+					DataObject dataObject = response.cast();
+					
+					JsArray<FqlUser> users;	
+					
+					dataObject = response.cast();
+					
+					users = dataObject.getData().cast();
+					
+					mapDiv.getMap().setView(ViewOptions.newViewOptions(null, Location.newLocation(users.get(0).getCurrent_location().getLatitude(), users.get(0).getCurrent_location().getLongitude()), null, null, null, null, 12));
+				}
+
+				@Override
+				public void onFailure(Throwable caught) {
+					// TODO Auto-generated method stub
+					
+				}
+		});
+		
+		
 	}
 
 	public void setView(HasWidgets view) {
 		this.view = view;
 	}
+
+
+	private boolean firstRun = true;
 	
-	public void go() {
+	
+	// TODO
+	// Expose a method in BingMap to take care of this 
+	boolean handlerattachend = false;
+
+	void attachHandler() {
+
+		AsyncCallback<JavaScriptObject> callback = new AsyncCallback<JavaScriptObject>() {  
+		    public void onSuccess(JavaScriptObject response) {
+		    	eventBus.fireEvent(new MapViewChangedEvent(mapDiv.getMap().getBounds().getNorth(), mapDiv.getMap().getBounds().getSouth(), mapDiv.getMap().getBounds().getEast(), mapDiv.getMap().getBounds().getWest()));
+		    }		  
+		    public void onFailure(Throwable caught) {  
+		    	
+		    }  
+		};
 		
-		
+		@SuppressWarnings("unused")
+		JavaScriptObject o = Events.addHandler(mapDiv.getMap(), "viewchangeend", callback);
+		handlerattachend = true;
 	}
-	
+
 	@EventHandler
-	void eventsReceived(EventsReceivedEvent event) {
+	void eventsReceived(final UpdatedMapItemsEvent event) {
 		System.out.println("EventsReceivedEvent seen by MapPresenter: mapping points");
 		
-		// Add the locations to the map
-		for (int i = 0; i < event.getEvents().length(); i++) {
-			
-			
-			if(event.getEvents().get(i).getVenue().getLatitude()!="" && event.getEvents().get(i).getVenue().getLatitude()!="null" && event.getEvents().get(i).getVenue().getLatitude()!=null) {
-			
-				// System.out.println("lat, long: " + event.getEvents().get(i).getVenue().getLatitude()+","+event.getEvents().get(i).getVenue().getLongitude());
-				
-				MapEventWidget item = new MapEventWidget(event.getEvents().get(i));
-
-				Location location = Location.getMicrosoftMapsLocation(event.getEvents().get(i).getVenue().getLatitude(), event.getEvents().get(i).getVenue().getLongitude());
-				
-				InfoboxOptions infoboxOptions = InfoboxOptions.getInfoboxOptions(400, 100, null, true, 0, true, false, null, null, item.getElement().getInnerHTML());
-				
-				Infobox itemInfobox = Infobox.getInfoBox(location, infoboxOptions);
+		// TODO
+		// Not this
+		// can't attach the hadnler too early.
+		if(!handlerattachend){ attachHandler(); }
 		
-				mapDiv.addPinToMap(location, Resources.INSTANCE.mapPushPin().getSafeUri().asString(), itemInfobox);
-			}
+
+		// TODO
+		// Not this.
+		mapDiv.getMap().Entities().clear();
+		
+		
+		// TODO
+		// Add a timer to delay each pindrop
+		for(FqlEvent nextEvent : event.getEvents()){
+
+			Location location = Location.newLocation(nextEvent.getVenue().getLatitude(), nextEvent.getVenue().getLongitude());
+
+			MapEventWidget item = new MapEventWidget(nextEvent);
+			InfoboxOptions infoboxOptions = InfoboxOptions.getInfoboxOptions(400, 100, null, true, 0, true, false, null, null, item.getElement().getInnerHTML());
+			Infobox itemInfobox = Infobox.getInfobox(location, infoboxOptions);
+
+			PushpinOptions options = PushpinOptions.setPushPinOptions(25, 28, Resources.INSTANCE.mapPushPin().getSafeUri().asString(), false, null, null, null);
+			Pushpin pushpin = Pushpin.getPushpin(location, options);
+
+			mapDiv.addPinWithClickInfobox(pushpin, itemInfobox);
+
 		}
+
+		// TODO
+		// Better
+		if(firstRun){
+			eventBus.fireEvent(new MapViewChangedEvent(mapDiv.getMap().getBounds().getNorth(), mapDiv.getMap().getBounds().getSouth(), mapDiv.getMap().getBounds().getEast(), mapDiv.getMap().getBounds().getWest()));
+			firstRun=false;
+		}
+		
 		
 	}
 	
-
 }
