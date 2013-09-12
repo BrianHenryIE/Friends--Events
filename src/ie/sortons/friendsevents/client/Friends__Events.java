@@ -43,11 +43,11 @@ public class Friends__Events implements EntryPoint {
 	// public String APPID = "123069381111681"; // sortonsevents
 	public String APPID = "251403644880972"; // sortonsdev
 	
-	private String requiredPermissions = "user_location,user_events,friends_events";
-
 	private boolean status = true;
 	private boolean xfbml = true;
 	private boolean cookie = true;
+
+	private String requiredPermissions = "user_location,user_events,friends_events";
 
 	// TODO : Gin
 	// "Create the object graph - a real application would use Gin"

@@ -8,7 +8,7 @@ public class LandingPage extends LandingPageServlet {
 	private final static String GWTNOCACHE = "friends__events/friends__events.nocache.js";
 	
 	public LandingPage(){
-		super(GWTNOCACHE);
+		super(GWTNOCACHE, "123069381111681");
 	}
 	
 }
