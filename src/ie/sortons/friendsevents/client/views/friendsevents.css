@@ -1,0 +1,50 @@
+.appHeading {
+	border-bottom: 1px solid #AAAAAA;
+	overflow: hidden;
+	padding: 10px;
+	position: absolute;
+	text-align: left;
+	left: 0;
+	top: 0;
+	right: 0;
+	z-index: 2;
+	background-color: white;
+	padding-left: 55px;
+}
+
+.menuPanel {
+	font-weight: bold;
+	margin-right: 75px;
+	margin-top: 10px;
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 3;
+}
+
+.map {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 40px;
+	bottom: 0;
+	z-index: 0;
+}
+
+
+.listScrollHolder {
+	max-width: 50%;
+	position: absolute;
+	top: 55px;
+	bottom: 10px;
+	padding-left: 50px;
+}
+
+.eventsList {
+	background-color: #FFFFFF;
+	border: 1px solid #CCCCCC;
+	max-height: 100%;
+	max-width: 500px;
+	min-height: 50%;
+	z-index: 2;
+}

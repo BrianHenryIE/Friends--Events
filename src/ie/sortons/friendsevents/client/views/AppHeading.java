@@ -1,6 +1,6 @@
 package ie.sortons.friendsevents.client.views;
 
-import ie.sortons.gwtfbplus.client.api.FBUi;
+import ie.sortons.gwtfbplus.client.api.FbUi;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
@@ -32,16 +32,14 @@ public class AppHeading extends Composite {
 	
 	public AppHeading() {
 		initWidget(uiBinder.createAndBindUi(this));
+		FriendsEventsResources resources = FriendsEventsResources.INSTANCE;
+		resources.css().ensureInjected();
+		this.setStyleName(resources.css().appHeading());
 	}
 
-	
-	public AppHeading(String firstName) {
-		initWidget(uiBinder.createAndBindUi(this));
-	}
-	
 	@UiHandler("shareLink")
 	void onClick(ClickEvent e) {	
-		FBUi.Feed("http://apps.facebook.com/sortonsevents/", null, "Friends' Events", null, "See a map of events your friends have been invited to.",
+		FbUi.Feed("http://apps.facebook.com/sortonsevents/", null, "Friends' Events", null, "See a map of events your friends have been invited to.",
 				new AsyncCallback<JavaScriptObject>() {
 
 					@Override

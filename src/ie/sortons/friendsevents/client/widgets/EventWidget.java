@@ -1,8 +1,10 @@
 package ie.sortons.friendsevents.client.widgets;
 
-import ie.sortons.gwtfbplus.client.fql.FqlEvent;
+import ie.sortons.gwtfbplus.client.overlay.AuthResponse;
+import ie.sortons.gwtfbplus.shared.domain.fql.FqlEvent;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Anchor;
@@ -32,12 +34,16 @@ public class EventWidget extends Composite {
 	public EventWidget(FqlEvent rowEvent) {
 	
 		initWidget(uiBinder.createAndBindUi(this));
+	
+		// System.out.println("new event list widget: "+ rowEvent.getEid() + " : " + rowEvent.getName());
+		
+		String accessToken = AuthResponse.getAuthResponse().getAccessToken();
 		
 		eventLink.setText(rowEvent.getName());
-		eventLink.setHref("http://www.facebook.com/event.php?eid="  + rowEvent.getEid());
+		eventLink.setHref("//www.facebook.com/events/"  + rowEvent.getEid());
 		eventLink.setTarget("_blank");
-		eventPicture.setUrl(rowEvent.getPic_square());
-	    startTime.setText(rowEvent.getStartTimeString());
+		eventPicture.setUrl("https://graph.facebook.com/" + rowEvent.getEid() + "/picture?type=square&access_token=" + accessToken);
+	    startTime.setText(rowEvent.is_date_only ? DateTimeFormat.getFormat("EEEE, dd MMMM, yyyy").format(rowEvent.getStartTime()) : DateTimeFormat.getFormat("EEEE, dd MMMM, yyyy, 'at' k:mm").format(rowEvent.getStartTime()) );
 	    location.setText(rowEvent.getLocation());
 
 		

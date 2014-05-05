@@ -1,6 +1,7 @@
 package ie.sortons.friendsevents.client.widgets;
 
-import ie.sortons.gwtfbplus.client.fql.FqlEvent;
+import ie.sortons.gwtfbplus.client.overlay.AuthResponse;
+import ie.sortons.gwtfbplus.shared.domain.fql.FqlEvent;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -36,13 +37,15 @@ public class MapEventWidget extends Composite {
 	public MapEventWidget(FqlEvent rowEvent) {
 		initWidget(uiBinder.createAndBindUi(this));
 		
-		eventPicture.setUrl(rowEvent.getPic_square());
+		// System.out.println("new map widget: "+ rowEvent.getEid() + " : " + rowEvent.getName());
+		String accessToken = AuthResponse.getAuthResponse().getAccessToken();
+		eventPicture.setUrl("https://graph.facebook.com/" + rowEvent.getEid() + "/picture?type=square&access_token="+accessToken);
 		
 		eventLink.setText(rowEvent.getName());
-		eventLink.setHref("http://www.facebook.com/event.php?eid="  + rowEvent.getEid());
+		eventLink.setHref("//www.facebook.com/events/"  + rowEvent.getEid());
 		eventLink.setTarget("_blank");
 				
-	    startTime.setText(rowEvent.getStartTimeString());
+	    startTime.setText(rowEvent.getStartTime().toString());
 	    
 	    location.setText(rowEvent.getLocation());
 	    if(rowEvent.getVenue().getId()!=null){

@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module rename-to='friends__events'>
+<module rename-to='friendsevents'>
   <!-- Inherit the core Web Toolkit stuff.                        -->
   <inherits name='com.google.gwt.user.User'/>
 
   <inherits name='com.google.gwt.user.theme.clean.Clean'/>
 
-  <inherits name='com.google.web.bindery.event.EventBinder'/>
+  
+	<inherits name='com.google.web.bindery.event.EventBinder' />
+	<inherits name="com.google.gwt.http.HTTP" />
   <inherits name="com.google.gwt.json.JSON" />
   <inherits name="com.google.gwt.i18n.I18N"/>
   <inherits name="com.google.gwt.resources.Resources" />
   
   <inherits name="com.gwtfb.GwtFB" />
-  <inherits name="ie.brianhenry.gwtbingmaps.GWT_Bing_Maps" />
-  <inherits name="ie.sortons.gwtfbplus.GwtFBplus" />
+  <inherits name="ie.brianhenry.gwtbingmaps.GwtBingMaps" />
+  <inherits name="ie.sortons.gwtfbplus.GwtFbPlus" />
   
-  <!--  i18n stuff put here for dates. Should actually pick it up from the browser -->
-  <extend-property name="locale" values="en_US"/>
-  <set-property name="locale" value="en_US"/>
-  
+	<inherits name='com.kfuntak.gwt.json.serialization.GWTProJsonSerializer' />
   
   <!-- Specify the app entry point class.                         -->
-  <entry-point class='ie.sortons.friendsevents.client.Friends__Events'/>
+  <entry-point class='ie.sortons.friendsevents.client.FriendsEvents'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
