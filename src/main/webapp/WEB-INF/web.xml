@@ -1,0 +1,18 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+          http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+
+ 
+  <servlet>
+	<servlet-name>LandingPage</servlet-name>
+	<servlet-class>ie.sortons.friendsevents.server.servlet.LandingPage</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+	<servlet-name>LandingPage</servlet-name>
+	<url-pattern>/landingpage/</url-pattern>
+  </servlet-mapping>
+		
+
+</web-app>

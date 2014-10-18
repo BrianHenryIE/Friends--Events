@@ -1,0 +1,9 @@
+/bin/
+/lib/
+/target/
+.settings
+gwt-unitcache
+clear.cache.gif
+src/main/webapp/friendsevents
+src/main/webapp/WEB-INF/lib
+

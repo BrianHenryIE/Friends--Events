@@ -1,0 +1,176 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>ie.sortons</groupId>
+	<artifactId>friendsevents</artifactId>
+	<version>0.0.8-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<properties>
+		<gae.version>1.9.11</gae.version>
+		<gwt.version>2.7.0-SNAPSHOT</gwt.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<app.name>sortonsevents</app.name>
+		<gae.application.version>test</gae.application.version>
+		<!-- <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory> -->
+
+		<!-- I think this is being picked up by GPE or M2E -->
+		<webappDirectory>src/main/webapp</webappDirectory>
+		
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-user</artifactId>
+			<version>${gwt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.gwt</groupId>
+			<artifactId>gwt-servlet</artifactId>
+			<version>${gwt.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.gwt.eventbinder</groupId>
+			<artifactId>eventbinder</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>ie.sortons</groupId>
+			<artifactId>gwtfbplus</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>ie.brianhenry</groupId>
+			<artifactId>gwtbingmaps</artifactId>
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<!-- Like Jackson on the client side -->
+			<groupId>com.kfuntak.gwt.json</groupId>
+			<artifactId>gwtprojsonserializer</artifactId>
+			<version>1.0.7-SNAPSHOT</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<!-- Generate compiled stuff in the folder used for dev mode -->
+		<outputDirectory>${webappDirectory}/WEB-INF/classes</outputDirectory>
+
+		<plugins>
+
+			<!-- GWT Maven Plugin -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>gwt-maven-plugin</artifactId>
+				<version>${gwt.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test</goal>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<style>PRETTY</style>
+							<module>ie.sortons.events.Sortonsevents</module>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<runTarget>/</runTarget>
+
+					<draftCompile>true</draftCompile>
+
+					<webappDirectory>target</webappDirectory>
+					<optimizationLevel>9</optimizationLevel>
+
+					<closureCompiler>true</closureCompiler>
+					<disableCastChecking>true</disableCastChecking>
+					<disableClassMetadata>true</disableClassMetadata>
+					<localWorkers>4</localWorkers>
+
+					<webappDirectory>${webappDirectory}</webappDirectory>
+					
+					<hostedWebapp>${basedir}/src/main/webapp</hostedWebapp>
+				</configuration>
+			</plugin>
+			<!-- Copy static web files before executing gwt:run -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>exploded</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<webappDirectory>${webappDirectory}</webappDirectory>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>gwt-oss-sonatype</id>
+			<name>oss-sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/google-snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>gwt-oss-sonatype</id>
+			<name>oss-sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/google-snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>nexus-snapshots</id>
+			<url>https://nexus.codehaus.org/content/repositories/snapshots//</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+
+
+	</pluginRepositories>
+
+</project>
