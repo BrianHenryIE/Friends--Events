@@ -113,10 +113,6 @@ public class FriendsEventsPresenter implements Presenter {
 		});
 
 		rpcService.getFriendsEvents(asc);
-		rpcService.getFriendsEvents(asc);
-		rpcService.getFriendsEvents(asc);
-		rpcService.getFriendsEvents(asc);
-
 	}
 
 	AsyncCallback<TreeMap<Long, FqlEvent>> asc = new AsyncCallback<TreeMap<Long, FqlEvent>>() {

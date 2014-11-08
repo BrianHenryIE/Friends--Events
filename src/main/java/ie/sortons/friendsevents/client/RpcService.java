@@ -1,6 +1,5 @@
 package ie.sortons.friendsevents.client;
 
-import ie.sortons.friendsevents.client.presenter.FriendsEventsPresenter;
 import ie.sortons.gwtfbplus.client.api.FBCore;
 
 import java.util.Date;
@@ -14,7 +13,6 @@ import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
-import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.kfuntak.gwt.json.serialization.client.HashMapSerializer;
 
 public class RpcService {
@@ -24,43 +22,31 @@ public class RpcService {
 	// event_member WHERE uid IN (SELECT uid2 FROM
 	// friend WHERE uid1 = me())
 
-	interface MyEventBinder extends EventBinder<RpcService> {
-	}
-
-	private final MyEventBinder eventBinder = GWT.create(MyEventBinder.class);
-
 	private FBCore fbCore = GWT.create(FBCore.class);
 
 	TreeMap<Long, FqlEvent> allFriendsEvents = new TreeMap<Long, FqlEvent>();
-
-	// private HashSet<FqlEvent> allPagesEvents = new HashSet<FqlEvent>();
-
-	FriendsEventsPresenter friendsEventsPresenter;
 
 	// TODO
 	// just calculate it in here
 	String startTime;
 
-	String friends = "SELECT uid2 FROM friend WHERE uid1 = me()";
+	private int numberPerPage = 350;
+	private int offset = 0;
 
-	String getMembersEventsFql(String sourceIds) {
-		return "SELECT eid FROM event_member WHERE start_time > '" + startTime + "' AND uid IN (" + sourceIds + ") LIMIT " + numberPerPage + " OFFSET " + offset;
+	private String getFriends(){
+		return "SELECT uid2 FROM friend WHERE uid1 = me() LIMIT " + numberPerPage + "  OFFSET " + offset; 
+	}
+
+	private String getMembersEventsFql(String sourceIds) {
+		return "SELECT eid FROM event_member WHERE start_time > '" + startTime + "' AND uid IN (" + sourceIds + ") ORDER BY start_time";
 	}
 
 	String getEventDetailsFql(String sourceIds) {
 		return "SELECT name, location, venue, eid, start_time, end_time, is_date_only FROM event WHERE eid IN ("
-				+ getMembersEventsFql(sourceIds) + ") ORDER BY start_time LIMIT " + numberPerPage;
+				+ getMembersEventsFql(sourceIds) + ") ORDER BY start_time";
 	}
 
-	boolean finishedFetchingEvents = false;
-	int spareFetchSlots = 5;
-	int offset = 0;
-
-	private int numberPerPage = 500;
-
 	public RpcService(EventBus eventBus) {
-
-		eventBinder.bindEventHandlers(this, eventBus);
 
 		// Date for searching
 		Date startTimeDate = new Date();
@@ -77,29 +63,22 @@ public class RpcService {
 	 */
 	public void getFriendsEvents(final AsyncCallback<TreeMap<Long, FqlEvent>> asc) {
 
-		if (finishedFetchingEvents || spareFetchSlots <= 0)
-			return;
-
-		String fql = getEventDetailsFql(friends);
+		String fql = getEventDetailsFql(getFriends());
 
 		String method = "fql.query";
 		JSONObject query = new JSONObject();
 		query.put("method", new JSONString(method));
 		query.put("query", new JSONString(fql));
 
-		System.out.println(fql);
-
-		spareFetchSlots--;
-		offset += numberPerPage;
+		GWT.log(fql);
 
 		fbCore.api(query.getJavaScriptObject(), new AsyncCallback<JavaScriptObject>() {
 			public void onSuccess(JavaScriptObject response) {
 
-				spareFetchSlots++;
-
 				JSONObject jsonResponse = new JSONObject(response);
 
-				System.out.println("response from fb");
+				GWT.log("response from fb");
+				startTime = null;
 
 				TreeMap<Long, FqlEvent> newEvents = new TreeMap<Long, FqlEvent>();
 
@@ -107,12 +86,19 @@ public class RpcService {
 					FqlEvent e = jsonResponse.get(key).isObject().getJavaScriptObject().cast();
 					allFriendsEvents.put(e.getEid(), e);
 					newEvents.put(e.getEid(), e);
-
 				}
 
+				GWT.log("response size: " + newEvents.size());
+
+				GWT.log("date: " + startTime);
+				
 				asc.onSuccess(newEvents);
 
-				if (jsonResponse.keySet().size() > 0)
+				System.out.println("startTime: " + startTime);
+
+				offset = offset+numberPerPage;
+				
+				if (newEvents.size()>1)
 					getFriendsEvents(asc);
 				else
 					System.out.println("done?");

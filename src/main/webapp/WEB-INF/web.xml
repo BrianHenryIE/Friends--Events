@@ -3,7 +3,6 @@
           http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     version="3.0">
 
- 
   <servlet>
 	<servlet-name>LandingPage</servlet-name>
 	<servlet-class>ie.sortons.friendsevents.server.servlet.LandingPage</servlet-class>
@@ -12,7 +11,6 @@
   <servlet-mapping>
 	<servlet-name>LandingPage</servlet-name>
 	<url-pattern>/landingpage/</url-pattern>
-  </servlet-mapping>
-		
+  </servlet-mapping>	
 
 </web-app>
