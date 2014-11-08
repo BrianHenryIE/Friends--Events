@@ -3,6 +3,8 @@ package ie.sortons.friendsevents.client.widgets;
 import ie.sortons.friendsevents.client.FqlEvent;
 import ie.sortons.gwtfbplus.client.overlay.AuthResponse;
 
+import java.util.Date;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -22,6 +24,8 @@ public class EventWidget extends Composite {
 	}
 
 
+	private static final Date now = new Date();
+	
 	@UiField Anchor eventLink;
 
 	@UiField Image eventPicture;
@@ -46,6 +50,8 @@ public class EventWidget extends Composite {
 	    startTime.setText(nextEvent.getIsDateOnly() ? DateTimeFormat.getFormat("EEEE, dd MMMM, yyyy").format(nextEvent.getStartTimeDate()) : DateTimeFormat.getFormat("EEEE, dd MMMM, yyyy, 'at' k:mm").format(nextEvent.getStartTimeDate()) );
 	    location.setText(nextEvent.getLocation());
 
+	    if(!nextEvent.getIsDateOnly() && nextEvent.getStartTimeDate().before(now))
+	    	this.getElement().getStyle().setOpacity(0.7);
 		
 	}
 
