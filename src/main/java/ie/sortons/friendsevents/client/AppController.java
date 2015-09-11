@@ -1,5 +1,27 @@
 package ie.sortons.friendsevents.client;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gwt.core.client.Callback;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.dom.client.Style.Display;
+import com.google.gwt.dom.client.Style.Position;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.json.client.JSONObject;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HasWidgets;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.kfuntak.gwt.json.serialization.client.HashMapSerializer;
+
 import ie.sortons.friendsevents.client.appevents.LoginEvent;
 import ie.sortons.friendsevents.client.presenter.FriendsEventsPresenter;
 import ie.sortons.friendsevents.client.presenter.Presenter;
@@ -8,26 +30,12 @@ import ie.sortons.friendsevents.client.views.AppHeading;
 import ie.sortons.gwtfbplus.client.api.Canvas;
 import ie.sortons.gwtfbplus.client.api.Canvas.PageInfo;
 import ie.sortons.gwtfbplus.client.api.FBCore;
-import ie.sortons.gwtfbplus.client.overlay.DataObject;
+import ie.sortons.gwtfbplus.client.overlay.FbResponse;
 import ie.sortons.gwtfbplus.client.overlay.LoginResponse;
-import ie.sortons.gwtfbplus.client.overlay.Permissions;
 import ie.sortons.gwtfbplus.client.resources.GwtFbPlusResources;
+import ie.sortons.gwtfbplus.shared.domain.Permission;
 
-import com.google.gwt.core.client.Callback;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.ScriptInjector;
-import com.google.gwt.dom.client.Style.Display;
-import com.google.gwt.dom.client.Style.Position;
-import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HasWidgets;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.SimplePanel;
+
 
 public class AppController implements Presenter {
 
@@ -43,7 +51,7 @@ public class AppController implements Presenter {
 	private boolean xfbml = true;
 	private boolean cookie = true;
 
-	private String requiredPermissions = "user_location,user_events,friends_events";
+	private String requiredPermissions = "user_location,user_events";
 
 	EventBus eventBus;
 
@@ -54,10 +62,16 @@ public class AppController implements Presenter {
 	Image loadingImage;
 	RpcService rpcService;
 
+	public static native boolean isDevMode() /*-{
+												return ($wnd.window.location.href.indexOf("dev")>-1) ? true : false; 
+												}-*/;
+
 	public AppController(RpcService rpcService, EventBus eventBus) {
 
-		APPID = "251403644880972"; // sortonsdev
-		// APPID = "123069381111681"; // sortonsevents
+		if (isDevMode())
+			APPID = "251403644880972"; // sortonsdev
+		else
+			APPID = "123069381111681"; // sortonsevents
 
 		this.rpcService = rpcService;
 		this.eventBus = eventBus;
@@ -86,7 +100,6 @@ public class AppController implements Presenter {
 		// Tell the Facebook canvas the initial size
 		staticNoScrollCalculations.run();
 
-		ScriptInjector.fromUrl("//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&amp;s=1'").inject();
 	}
 
 	@Override
@@ -114,20 +127,26 @@ public class AppController implements Presenter {
 
 	}
 
-	public void loggedIn() {
+	
+	HashMapSerializer hashMapSerializer = (HashMapSerializer) GWT.create(HashMapSerializer.class);
+
+	void loggedIn() {
 
 		GWT.log("Logged in... check permissions.");
 
 		// check we've got the correct permissions before attempting anything
-		fbCore.api("/me/permissions", new AsyncCallback<JavaScriptObject>() {
-			public void onSuccess(JavaScriptObject response) {
+		fbCore.api("/me/permissions", new AsyncCallback<FbResponse>() {
+			public void onSuccess(FbResponse response) {
+				
+				// TODO Add convenience method to GwtProJsonSerializer
+				@SuppressWarnings("unchecked")
+				Map<String, Permission> permissionsMap = (HashMap<String, Permission>) hashMapSerializer.deSerialize(new JSONObject(response.getData()), "java.util.HashMap");
 
-				// TODO Tidy up cast of index of DataObject in DataObject
-				DataObject permissionsDo = response.cast();
-				DataObject permissions2 = permissionsDo.getObject("data").cast();
-				Permissions perms = permissions2.getObject("0").cast();
-
-				if (perms.hasPermissions(requiredPermissions)) {
+				List<Permission> permissions = new ArrayList<Permission>(permissionsMap.values());
+				
+				GWT.log("permissions.size() " + permissions.size());
+				
+				if (false) { // || perms.hasPermissions(requiredPermissions)) {
 
 					GWT.log("Required permissions present.");
 
@@ -197,8 +216,8 @@ public class AppController implements Presenter {
 
 					if (info.getScrollTop() < info.getOffsetTop()) {
 						RootPanel.get("gwt").getElement().getStyle().setMarginTop(0, Unit.PX);
-						RootPanel.get("gwt").setHeight(
-								info.getClientHeight() - info.getOffsetTop() + info.getScrollTop() + "px");
+						RootPanel.get("gwt")
+								.setHeight(info.getClientHeight() - info.getOffsetTop() + info.getScrollTop() + "px");
 					} else {
 						RootPanel.get("gwt").setHeight(info.getClientHeight() + "px");
 						RootPanel.get("gwt").getElement().getStyle()
