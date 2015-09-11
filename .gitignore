@@ -1,3 +1,8 @@
+.idea
+.eclipse
+.project
+.classpath
+
 /bin/
 /lib/
 /target/

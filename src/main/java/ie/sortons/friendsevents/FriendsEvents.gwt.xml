@@ -5,7 +5,6 @@
 
 	<inherits name='com.google.gwt.user.theme.clean.Clean' />
 
-
 	<inherits name='com.google.web.bindery.event.EventBinder' />
 	<inherits name="com.google.gwt.http.HTTP" />
 	<inherits name="com.google.gwt.json.JSON" />
@@ -24,4 +23,10 @@
 	<source path='client' />
 	<source path='shared' />
 
+	<!-- Super Dev Mode Changes -->
+	<add-linker name="xsiframe"/>
+	<set-configuration-property name="devModeRedirectEnabled" value="true"/>
+	<!-- enable source maps -->
+	<set-property name="compiler.useSourceMaps" value="true" />
+	
 </module>
