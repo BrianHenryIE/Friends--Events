@@ -35,8 +35,6 @@ import ie.sortons.gwtfbplus.client.overlay.LoginResponse;
 import ie.sortons.gwtfbplus.client.resources.GwtFbPlusResources;
 import ie.sortons.gwtfbplus.shared.domain.Permission;
 
-
-
 public class AppController implements Presenter {
 
 	// interface MyEventBinder extends EventBinder<AppController> { }
@@ -127,7 +125,6 @@ public class AppController implements Presenter {
 
 	}
 
-	
 	HashMapSerializer hashMapSerializer = (HashMapSerializer) GWT.create(HashMapSerializer.class);
 
 	void loggedIn() {
@@ -137,16 +134,15 @@ public class AppController implements Presenter {
 		// check we've got the correct permissions before attempting anything
 		fbCore.api("/me/permissions", new AsyncCallback<FbResponse>() {
 			public void onSuccess(FbResponse response) {
-				
+
 				// TODO Add convenience method to GwtProJsonSerializer
 				@SuppressWarnings("unchecked")
-				Map<String, Permission> permissionsMap = (HashMap<String, Permission>) hashMapSerializer.deSerialize(new JSONObject(response.getData()), "java.util.HashMap");
+				Map<String, Permission> permissionsMap = (HashMap<String, Permission>) hashMapSerializer.deSerialize(
+						new JSONObject(response.getData()), "ie.sortons.gwtfbplus.shared.domain.Permission");
 
 				List<Permission> permissions = new ArrayList<Permission>(permissionsMap.values());
-				
-				GWT.log("permissions.size() " + permissions.size());
-				
-				if (false) { // || perms.hasPermissions(requiredPermissions)) {
+
+				if (Permission.permissionsPresent(permissions, requiredPermissions)) {
 
 					GWT.log("Required permissions present.");
 
@@ -230,4 +226,5 @@ public class AppController implements Presenter {
 			});
 		}
 	};
+
 }
