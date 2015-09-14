@@ -86,7 +86,6 @@
 
 					<draftCompile>true</draftCompile>
 
-					<webappDirectory>target</webappDirectory>
 					<optimizationLevel>9</optimizationLevel>
 
 					<closureCompiler>true</closureCompiler>
@@ -96,9 +95,14 @@
 
 					<webappDirectory>${webappDirectory}</webappDirectory>
 
-					<hostedWebapp>${basedir}/src/main/webapp</hostedWebapp>
+					<!-- <hostedWebapp>${basedir}/src/main/webapp</hostedWebapp> -->
+					<hostedWebapp>${basedir}/target/${project.artifactId}-${project.version}</hostedWebapp>
+
+					<!-- Where it puts the gwt-unitCache folder -->
+					<persistentunitcachedir>${basedir}</persistentunitcachedir>
 
 					<bindAddress>dev.sortons.ie</bindAddress>
+					
 				</configuration>
 			</plugin>
 
@@ -119,10 +123,48 @@
 				<configuration>
 					<!-- Generate compiled stuff in the folder used for developing mode -->
 					<outputDirectory>${webappDirectory}/WEB-INF/classes</outputDirectory>
+					
 					<enableJarClasses>false</enableJarClasses>
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<!-- Copies the src/main/webapp content to the target war -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>src/main/webapp</directory>
+						</resource>
+					</webResources>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>exploded</goal>
+						</goals>
+						<phase>process-resources</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<!-- Configure mvn:clean to empty gwt-unitCache -->
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>gwt-unitCache</directory>
+							<includes>
+								<include>*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
