@@ -13,7 +13,7 @@ import com.google.gson.Gson;
 import ie.sortons.gwtfbplus.shared.domain.SignedRequest;
 
 @SuppressWarnings("serial")
-public abstract class LandingPage extends HttpServlet {
+public class LandingPage extends HttpServlet {
 
 	String head = "<script src='//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&amp;s=1' ></script>";
 	String body = "";
