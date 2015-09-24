@@ -1,21 +1,5 @@
 package ie.sortons.friendsevents.client.widgets;
 
-import ie.brianhenry.gwtbingmaps.client.BingMap;
-import ie.brianhenry.gwtbingmaps.client.api.Events;
-import ie.brianhenry.gwtbingmaps.client.api.Infobox;
-import ie.brianhenry.gwtbingmaps.client.api.InfoboxOptions;
-import ie.brianhenry.gwtbingmaps.client.api.Location;
-import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
-import ie.brianhenry.gwtbingmaps.client.api.Map;
-import ie.brianhenry.gwtbingmaps.client.api.MapOptions;
-import ie.brianhenry.gwtbingmaps.client.api.Point;
-import ie.brianhenry.gwtbingmaps.client.api.Pushpin;
-import ie.brianhenry.gwtbingmaps.client.api.PushpinOptions;
-import ie.brianhenry.gwtbingmaps.client.api.ViewOptions;
-import ie.sortons.friendsevents.client.FqlEvent;
-import ie.sortons.gwtfbplus.client.overlay.fql.FqlUser;
-import ie.sortons.gwtfbplus.client.resources.map.MapResources;
-
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
@@ -37,6 +21,21 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SimplePanel;
 
+import ie.brianhenry.gwtbingmaps.client.BingMap;
+import ie.brianhenry.gwtbingmaps.client.api.Events;
+import ie.brianhenry.gwtbingmaps.client.api.Infobox;
+import ie.brianhenry.gwtbingmaps.client.api.InfoboxOptions;
+import ie.brianhenry.gwtbingmaps.client.api.Location;
+import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
+import ie.brianhenry.gwtbingmaps.client.api.Map;
+import ie.brianhenry.gwtbingmaps.client.api.MapOptions;
+import ie.brianhenry.gwtbingmaps.client.api.Point;
+import ie.brianhenry.gwtbingmaps.client.api.Pushpin;
+import ie.brianhenry.gwtbingmaps.client.api.PushpinOptions;
+import ie.brianhenry.gwtbingmaps.client.api.ViewOptions;
+import ie.sortons.gwtfbplus.client.overlay.graph.GraphEvent;
+import ie.sortons.gwtfbplus.client.resources.map.MapResources;
+
 // This can probably just extend BingMap
 public class EventsMap extends Composite implements HasValueChangeHandlers<LocationRect> {
 
@@ -48,7 +47,7 @@ public class EventsMap extends Composite implements HasValueChangeHandlers<Locat
 
 	int centerXOffset = 270;
 
-	private PriorityQueue<FqlEvent> events;
+	private PriorityQueue<GraphEvent> events;
 
 	MapResources resources = MapResources.INSTANCE;
 
@@ -173,20 +172,19 @@ public class EventsMap extends Composite implements HasValueChangeHandlers<Locat
 	PushpinOptions optionsHidden = PushpinOptions.setPushPinOptions(25, 28, resources.mapPushPin().getSafeUri().asString(), false,
 			null, false, null);
 
-	public void setUserLocation(FqlUser user) {
-		Location userLocation = Location.newLocation(user.getCurrent_location().getLatitude(), user.getCurrent_location()
-				.getLongitude());
+	public void setUserLocation(String latitude, String longitude) {
+		Location userLocation = Location.newLocation(latitude, longitude);
 		Point locationOffset = Point.getPoint(centerXOffset * -1, 0);
 		mapDiv.getMap().setView(ViewOptions.newViewOptions(null, userLocation, locationOffset, null, null, null, 12.0));
 		ValueChangeEvent.fire(this, mapDiv.getMap().getBounds());
 	}
 
-	public void setItemList(PriorityQueue<FqlEvent> mappableEventsBetweenDates) {
+	public void setItemList(PriorityQueue<GraphEvent> mappableEventsBetweenDates) {
 		this.events = mappableEventsBetweenDates;
 	}
 
-	HashMap<FqlEvent, Pushpin> pushpinCache = new HashMap<FqlEvent, Pushpin>();
-	HashMap<FqlEvent, Infobox> infoboxCache = new HashMap<FqlEvent, Infobox>();
+	HashMap<GraphEvent, Pushpin> pushpinCache = new HashMap<GraphEvent, Pushpin>();
+	HashMap<GraphEvent, Infobox> infoboxCache = new HashMap<GraphEvent, Infobox>();
 
 	public void updateMapPins() {
 
@@ -201,11 +199,11 @@ public class EventsMap extends Composite implements HasValueChangeHandlers<Locat
 		
 		mapDiv.getMap().Entities().clear();
 				
-		for (FqlEvent nextEvent : events) {
+		for (GraphEvent nextEvent : events) {
 
 			if (!pushpinCache.containsKey(nextEvent)) {
 
-				Location location = Location.newLocation(nextEvent.getVenue().getLatitude(), nextEvent.getVenue().getLongitude());
+				Location location = Location.newLocation(nextEvent.getPlace().getLocation().getLatitude(), nextEvent.getPlace().getLocation().getLongitude());
 
 				MapEventWidget item = new MapEventWidget(nextEvent);
 				InfoboxOptions infoboxOptions = InfoboxOptions.getInfoboxOptions(400, 100, null, true, 0, true, false, null, null,

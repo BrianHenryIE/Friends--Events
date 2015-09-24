@@ -41,7 +41,7 @@ public class AppController implements Presenter {
 	// private static final MyEventBinder eventBinder = GWT.create(MyEventBinder.class);
 
 	// Courtesy of gwtfb.com
-	private FBCore fbCore = GWT.create(FBCore.class);
+	private FBCore fbCore; // = GWT.create(FBCore.class);
 
 	String APPID;
 
@@ -61,8 +61,8 @@ public class AppController implements Presenter {
 	RpcService rpcService;
 
 	public static native boolean isDevMode() /*-{
-												return ($wnd.window.location.href.indexOf("dev")>-1) ? true : false; 
-												}-*/;
+		return ($wnd.window.location.href.indexOf("dev")>-1) ? true : false; 
+	}-*/;
 
 	public AppController(RpcService rpcService, EventBus eventBus) {
 
@@ -71,6 +71,10 @@ public class AppController implements Presenter {
 		else
 			APPID = "123069381111681"; // sortonsevents
 
+		fbCore = GWT.create(FBCore.class);
+		
+		String version = "v2.4";
+		
 		this.rpcService = rpcService;
 		this.eventBus = eventBus;
 
@@ -84,7 +88,20 @@ public class AppController implements Presenter {
 
 		GwtFbPlusResources.INSTANCE.facebookStyles().ensureInjected();
 
-		fbCore.init(APPID, status, cookie, xfbml);
+		fbCore.init(APPID, true, true, version, new Callback<Void, Exception>(){
+
+			@Override
+			public void onSuccess(Void result) {
+				// This is called once the js has been downloaded.				
+			}
+
+			@Override
+			public void onFailure(Exception reason) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 
 		app.add(new AppHeading());
 		app.add(appContainer);
@@ -132,13 +149,15 @@ public class AppController implements Presenter {
 		GWT.log("Logged in... check permissions.");
 
 		// check we've got the correct permissions before attempting anything
-		fbCore.api("/me/permissions", new AsyncCallback<FbResponse>() {
-			public void onSuccess(FbResponse response) {
+		fbCore.api("v2.4", "/me/permissions", new AsyncCallback<JavaScriptObject>() {
+			public void onSuccess(JavaScriptObject response) {
 
+				FbResponse fbr = response.cast();
+				
 				// TODO Add convenience method to GwtProJsonSerializer
 				@SuppressWarnings("unchecked")
 				Map<String, Permission> permissionsMap = (HashMap<String, Permission>) hashMapSerializer.deSerialize(
-						new JSONObject(response.getData()), "ie.sortons.gwtfbplus.shared.domain.Permission");
+						new JSONObject(fbr.getData()), "ie.sortons.gwtfbplus.shared.domain.Permission");
 
 				List<Permission> permissions = new ArrayList<Permission>(permissionsMap.values());
 

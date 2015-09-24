@@ -1,13 +1,5 @@
 package ie.sortons.friendsevents.client.presenter;
 
-import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
-import ie.sortons.friendsevents.client.FqlEvent;
-import ie.sortons.friendsevents.client.RpcService;
-import ie.sortons.friendsevents.client.views.FriendsEventsView;
-import ie.sortons.gwtfbplus.client.overlay.DataObject;
-import ie.sortons.gwtfbplus.client.overlay.fql.FqlUser;
-import ie.sortons.gwtfbplus.client.widgets.datepicker.FbDateBox;
-
 import java.util.Comparator;
 import java.util.Date;
 import java.util.PriorityQueue;
@@ -15,19 +7,24 @@ import java.util.TreeMap;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.JsArray;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 
+import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
+import ie.sortons.friendsevents.client.RpcService;
+import ie.sortons.friendsevents.client.views.FriendsEventsView;
+import ie.sortons.gwtfbplus.client.overlay.graph.GraphEvent;
+import ie.sortons.gwtfbplus.client.widgets.datepicker.FbDateBox;
+
 /**
- * Presenter for the main events screen, which shows a list of Facebook events
- * once they've been loaded from Facebook.
+ * Presenter for the main events screen, which shows a list of Facebook events once they've been loaded from Facebook.
  */
 public class FriendsEventsPresenter implements Presenter {
 
@@ -41,17 +38,17 @@ public class FriendsEventsPresenter implements Presenter {
 
 		LocationRect getLocationRect();
 
-		void setEventsForList(PriorityQueue<FqlEvent> eventsForList);
+		void setEventsForList(PriorityQueue<GraphEvent> eventsForList);
 
 		void eventsListUpdated();
 
-		void setEventsForMap(PriorityQueue<FqlEvent> eventsForMap);
+		void setEventsForMap(PriorityQueue<GraphEvent> eventsForMap);
 
 		void mapListUpdated();
 
 		void setPresenter(FriendsEventsPresenter presenter);
 
-		void setUserLocation(FqlUser user);
+		void setUserLocation(String latitude, String longitude);
 
 	}
 
@@ -67,24 +64,24 @@ public class FriendsEventsPresenter implements Presenter {
 
 	private LocationRect currentLocationRect;
 
-	Comparator<FqlEvent> eventsByTime = new Comparator<FqlEvent>() {
-		public int compare(FqlEvent e1, FqlEvent e2) {
+	Comparator<GraphEvent> eventsByTime = new Comparator<GraphEvent>() {
+		public int compare(GraphEvent e1, GraphEvent e2) {
 			return e2.getStartTime().compareTo(e1.getStartTime()) * -1;
 		}
 	};
 
-	TreeMap<Long, FqlEvent> allFriendsEvents = new TreeMap<Long, FqlEvent>();
+	TreeMap<String, GraphEvent> allFriendsEvents = new TreeMap<String, GraphEvent>();
 
-	TreeMap<Long, FqlEvent> mappableEvents = new TreeMap<Long, FqlEvent>();
+	TreeMap<String, GraphEvent> mappableEvents = new TreeMap<String, GraphEvent>();
 
-	TreeMap<Long, FqlEvent> unMappableEvents = new TreeMap<Long, FqlEvent>();
+	TreeMap<String, GraphEvent> unMappableEvents = new TreeMap<String, GraphEvent>();
 
 	// currentEventsForMap is the set of events that fall within the specified
 	// dates
-	PriorityQueue<FqlEvent> mappableEventsBetweenDates = new PriorityQueue<FqlEvent>(100, eventsByTime);
+	PriorityQueue<GraphEvent> mappableEventsBetweenDates = new PriorityQueue<GraphEvent>(100, eventsByTime);
 
 	// currentEventsForList is the set of events that are visible on the map
-	PriorityQueue<FqlEvent> currentlyMappedEventsForList = new PriorityQueue<FqlEvent>(100, eventsByTime);
+	PriorityQueue<GraphEvent> currentlyMappedEventsForList = new PriorityQueue<GraphEvent>(100, eventsByTime);
 
 	EventBus eventBus;
 
@@ -97,13 +94,28 @@ public class FriendsEventsPresenter implements Presenter {
 
 				// TODO This should return a FqlUser object directly
 
-				DataObject dataObject = response.cast();
+				GWT.log("getUserLocation onSuccess");
 
-				JsArray<FqlUser> users = dataObject.getData().cast();
+				// {"location":{"location":{"city":"Dublin","country":"Ireland","latitude":53.3478,"longitude":-6.2597},"id":"110769888951990"},"id":"37302520"});
 
-				FqlUser theUser = users.get(0);
+				JSONObject jo = new JSONObject(response);
 
-				view.setUserLocation(theUser);
+				GWT.log(response.toString());
+				
+				JSONObject location = jo.get("location").isObject().get("location").isObject();
+
+				GWT.log(location.toString());
+
+				String city= location.get("city").isString().toString();
+				GWT.log("city: " + city);
+				
+				String latitude = location.get("latitude").isNumber().toString();
+				GWT.log("latitude: " + latitude);
+				
+				String longitude = location.get("longitude").isNumber().toString();
+				GWT.log("longitude: " + longitude);
+
+				view.setUserLocation(latitude, longitude);
 			}
 
 			@Override
@@ -112,31 +124,34 @@ public class FriendsEventsPresenter implements Presenter {
 			}
 		});
 
-		rpcService.getFriendsEvents(asc);
+		rpcService.getEvents(asc);
 	}
 
-	AsyncCallback<TreeMap<Long, FqlEvent>> asc = new AsyncCallback<TreeMap<Long, FqlEvent>>() {
+	AsyncCallback<TreeMap<String, GraphEvent>> asc = new AsyncCallback<TreeMap<String, GraphEvent>>() {
 
 		@Override
-		public void onSuccess(TreeMap<Long, FqlEvent> result) {
+		public void onSuccess(TreeMap<String, GraphEvent> result) {
 
 			// First go through the entire list and split between mappable
 			// and unmappable events
 
-			System.out.println("result: " + result.size());
+			
+			GWT.log("result: " + result.size());
 
-			for (FqlEvent nextEvent : result.values()) {
-				allFriendsEvents.put(nextEvent.getEid(), nextEvent);
-				if (nextEvent.getVenue() != null && nextEvent.getVenue().getLatitude() != null
-						&& nextEvent.getVenue().getLatitude() != null)
-					mappableEvents.put(nextEvent.getEid(), nextEvent);
+			for (GraphEvent nextEvent : result.values()) {
+				
+				allFriendsEvents.put(nextEvent.getId(), nextEvent);
+
+				if (nextEvent.getPlace() != null && nextEvent.getPlace().getLocation() != null && nextEvent.getPlace().getLocation().getLatitude() != null
+						&& nextEvent.getPlace().getLocation().getLongitude() != null)
+					mappableEvents.put(nextEvent.getId(), nextEvent);
 				else
-					unMappableEvents.put(nextEvent.getEid(), nextEvent);
+					unMappableEvents.put(nextEvent.getId(), nextEvent);
 			}
 
-			System.out.println("allFriendsEvents " + allFriendsEvents.size());
-			System.out.println("mappableEvents " + mappableEvents.size());
-			System.out.println("unMappableEvents " + unMappableEvents.size());
+			GWT.log("allFriendsEvents " + allFriendsEvents.size());
+			GWT.log("mappableEvents " + mappableEvents.size());
+			GWT.log("unMappableEvents " + unMappableEvents.size());
 
 			calculateEventsToShow();
 
@@ -175,7 +190,7 @@ public class FriendsEventsPresenter implements Presenter {
 		view.addValueChangeHandler(new ValueChangeHandler<LocationRect>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<LocationRect> event) {
-				// System.out.println("locationrect valuechange");
+				// GWT.log("locationrect valuechange");
 				currentLocationRect = event.getValue();
 				calculateEventsToShow();
 			}
@@ -240,28 +255,28 @@ public class FriendsEventsPresenter implements Presenter {
 		// For an event to be running between the specified dates, its start
 		// time will be before the final date and its
 		// end time will be after the start date.
-		for (FqlEvent checkEvent : mappableEvents.values())
+		for (GraphEvent checkEvent : mappableEvents.values())
 			// if ( checkEvent.getStartTime() == from ||
 			if ((checkEvent.getStartTimeDate().after(from) && checkEvent.getStartTimeDate().before(to))
-					|| (checkEvent.getEndTime() != null && checkEvent.getEndTimeDate().after(from) && checkEvent.getEndTimeDate()
-							.before(to)))
+					|| (checkEvent.getEndTime() != null && checkEvent.getEndTimeDate().after(from)
+							&& checkEvent.getEndTimeDate().before(to)))
 				mappableEventsBetweenDates.add(checkEvent);
 
 		view.mapListUpdated();
 
 		currentlyMappedEventsForList.clear();
 
-		for (FqlEvent currentMapEvent : mappableEventsBetweenDates)
-			if (currentLocationRect.getNorth() > currentMapEvent.getVenue().getLatitude()
-					&& currentMapEvent.getVenue().getLatitude() > currentLocationRect.getSouth()
-					&& currentLocationRect.getWest() < currentMapEvent.getVenue().getLongitude()
-					&& currentMapEvent.getVenue().getLongitude() < currentLocationRect.getEast())
+		for (GraphEvent currentMapEvent : mappableEventsBetweenDates)
+			if (currentLocationRect.getNorth() > currentMapEvent.getPlace().getLocation().getLatitude()
+					&& currentMapEvent.getPlace().getLocation().getLatitude() > currentLocationRect.getSouth()
+					&& currentLocationRect.getWest() < currentMapEvent.getPlace().getLocation().getLongitude()
+					&& currentMapEvent.getPlace().getLocation().getLongitude() < currentLocationRect.getEast())
 				currentlyMappedEventsForList.add(currentMapEvent);
 
-		// System.out.println("mappableEvents " + mappableEvents.size());
-		// System.out.println("currentEventsFromMap " +
+		// GWT.log("mappableEvents " + mappableEvents.size());
+		// GWT.log("currentEventsFromMap " +
 		// mappableEventsBetweenDates.size());
-		// System.out.println("currentEventsForList " +
+		// GWT.log("currentEventsForList " +
 		// currentlyMappedEventsForList.size());
 
 		view.eventsListUpdated();

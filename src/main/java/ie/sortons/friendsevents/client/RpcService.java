@@ -1,7 +1,5 @@
 package ie.sortons.friendsevents.client;
 
-import ie.sortons.gwtfbplus.client.api.FBCore;
-
 import java.util.Date;
 import java.util.TreeMap;
 
@@ -10,10 +8,12 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.json.client.JSONObject;
-import com.google.gwt.json.client.JSONString;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
-import com.kfuntak.gwt.json.serialization.client.HashMapSerializer;
+
+import ie.sortons.gwtfbplus.client.api.FBCore;
+import ie.sortons.gwtfbplus.client.overlay.FbResponse;
+import ie.sortons.gwtfbplus.client.overlay.graph.GraphEvent;
 
 public class RpcService {
 
@@ -24,7 +24,7 @@ public class RpcService {
 
 	private FBCore fbCore = GWT.create(FBCore.class);
 
-	TreeMap<Long, FqlEvent> allFriendsEvents = new TreeMap<Long, FqlEvent>();
+	TreeMap<String, GraphEvent> allFriendsEvents = new TreeMap<String, GraphEvent>();
 
 	// TODO
 	// just calculate it in here
@@ -32,13 +32,14 @@ public class RpcService {
 
 	private int numberPerPage = 350;
 	private int offset = 0;
-
-	private String getFriends(){
-		return "SELECT uid2 FROM friend WHERE uid1 = me() LIMIT " + numberPerPage + "  OFFSET " + offset; 
-	}
+	//
+	// private String getFriends() {
+	// return "SELECT uid2 FROM friend WHERE uid1 = me() LIMIT " + numberPerPage + " OFFSET " + offset;
+	// }
 
 	private String getMembersEventsFql(String sourceIds) {
-		return "SELECT eid FROM event_member WHERE start_time > '" + startTime + "' AND uid IN (" + sourceIds + ") ORDER BY start_time";
+		return "SELECT eid FROM event_member WHERE start_time > '" + startTime + "' AND uid IN (" + sourceIds
+				+ ") ORDER BY start_time";
 	}
 
 	String getEventDetailsFql(String sourceIds) {
@@ -56,52 +57,43 @@ public class RpcService {
 
 	}
 
-	HashMapSerializer hashMapSerializer = (HashMapSerializer) GWT.create(HashMapSerializer.class);
+	// HashMapSerializer hashMapSerializer = (HashMapSerializer) GWT.create(HashMapSerializer.class);
 
 	/**
 	 * Makes the Facebook API call to get the actual events
 	 */
-	public void getFriendsEvents(final AsyncCallback<TreeMap<Long, FqlEvent>> asc) {
+	public void getEvents(final AsyncCallback<TreeMap<String, GraphEvent>> callback) {
 
-		String fql = getEventDetailsFql(getFriends());
+		String query = "/search?type=event&q=Dublin{place}";
 
-		String method = "fql.query";
-		JSONObject query = new JSONObject();
-		query.put("method", new JSONString(method));
-		query.put("query", new JSONString(fql));
+		GWT.log("query: " + query);
 
-		GWT.log(fql);
-
-		fbCore.api(query.getJavaScriptObject(), new AsyncCallback<JavaScriptObject>() {
+		fbCore.api("v2.4", query, new AsyncCallback<JavaScriptObject>() {
 			public void onSuccess(JavaScriptObject response) {
 
-				JSONObject jsonResponse = new JSONObject(response);
+				FbResponse fbResponse = response.cast();
+
+				JSONObject jsonResponse = new JSONObject(fbResponse.getData());
 
 				GWT.log("response from fb");
+				GWT.log(jsonResponse.toString());
+
 				startTime = null;
 
-				TreeMap<Long, FqlEvent> newEvents = new TreeMap<Long, FqlEvent>();
+				TreeMap<String, GraphEvent> newEvents = new TreeMap<String, GraphEvent>();
 
 				for (String key : jsonResponse.keySet()) {
-					FqlEvent e = jsonResponse.get(key).isObject().getJavaScriptObject().cast();
-					allFriendsEvents.put(e.getEid(), e);
-					newEvents.put(e.getEid(), e);
+					if (jsonResponse.get(key).isObject()!=null) {
+						GraphEvent e = jsonResponse.get(key).isObject().getJavaScriptObject().cast();
+						GWT.log(e.getName());
+						allFriendsEvents.put(e.getId(), e);
+						newEvents.put(e.getId(), e);
+					}
 				}
 
 				GWT.log("response size: " + newEvents.size());
 
-				GWT.log("date: " + startTime);
-				
-				asc.onSuccess(newEvents);
-
-				System.out.println("startTime: " + startTime);
-
-				offset = offset+numberPerPage;
-				
-				if (newEvents.size()>1)
-					getFriendsEvents(asc);
-				else
-					System.out.println("done?");
+				callback.onSuccess(newEvents);
 
 			}
 
@@ -114,14 +106,17 @@ public class RpcService {
 
 	public void getUserLocation(AsyncCallback<JavaScriptObject> aCallback) {
 
-		String fql = "SELECT current_location.latitude, current_location.longitude FROM user WHERE uid = me()";
+		// me/?fields=location{location}
 
-		String method = "fql.query";
-		JSONObject query = new JSONObject();
-		query.put("method", new JSONString(method));
-		query.put("query", new JSONString(fql));
+		/*
+		 * { "location": { "location": { "city": "Dublin", "country": "Ireland", "latitude": 53.3478, "longitude":
+		 * -6.2597 }, "id": "110769888951990" }, "id": "37302520" }
+		 * 
+		 */
 
-		fbCore.api(query.getJavaScriptObject(), aCallback);
+		GWT.log("getUserLocation");
+
+		fbCore.api("v2.4", "/me/?fields=location{location}", aCallback);
 
 	}
 

@@ -1,14 +1,5 @@
 package ie.sortons.friendsevents.client.views;
 
-import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
-import ie.sortons.friendsevents.client.FqlEvent;
-import ie.sortons.friendsevents.client.presenter.FriendsEventsPresenter;
-import ie.sortons.friendsevents.client.widgets.EventWidget;
-import ie.sortons.friendsevents.client.widgets.EventsMap;
-import ie.sortons.gwtfbplus.client.overlay.fql.FqlUser;
-import ie.sortons.gwtfbplus.client.widgets.datepicker.DatePickerResources;
-import ie.sortons.gwtfbplus.client.widgets.datepicker.FbDateBox;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +15,14 @@ import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 
+import ie.brianhenry.gwtbingmaps.client.api.LocationRect;
+import ie.sortons.friendsevents.client.presenter.FriendsEventsPresenter;
+import ie.sortons.friendsevents.client.widgets.EventWidget;
+import ie.sortons.friendsevents.client.widgets.EventsMap;
+import ie.sortons.gwtfbplus.client.overlay.graph.GraphEvent;
+import ie.sortons.gwtfbplus.client.widgets.datepicker.DatePickerResources;
+import ie.sortons.gwtfbplus.client.widgets.datepicker.FbDateBox;
+
 public class FriendsEventsView extends Composite implements FriendsEventsPresenter.Display, HasValueChangeHandlers<LocationRect> {
 
 	FlowPanel panel = new FlowPanel();
@@ -32,8 +31,8 @@ public class FriendsEventsView extends Composite implements FriendsEventsPresent
 
 	// TODO
 	// Can I just put value change handlers on these??
-	PriorityQueue<FqlEvent> eventsForList;
-	HashSet<FqlEvent> eventsForMap;
+	PriorityQueue<GraphEvent> eventsForList;
+	HashSet<GraphEvent> eventsForMap;
 
 	FlowPanel menuPanel = new FlowPanel();
 	EventsMap eventsMap = new EventsMap();
@@ -112,12 +111,12 @@ public class FriendsEventsView extends Composite implements FriendsEventsPresent
 	}
 
 	@Override
-	public void setEventsForList(PriorityQueue<FqlEvent> eventsForList) {
+	public void setEventsForList(PriorityQueue<GraphEvent> eventsForList) {
 		this.eventsForList = eventsForList;
 	}
 
 	@Override
-	public void setEventsForMap(PriorityQueue<FqlEvent> mappableEventsBetweenDates) {
+	public void setEventsForMap(PriorityQueue<GraphEvent> mappableEventsBetweenDates) {
 		eventsMap.setItemList(mappableEventsBetweenDates);
 	}
 
@@ -128,18 +127,18 @@ public class FriendsEventsView extends Composite implements FriendsEventsPresent
 		list.clear();
 
 		while (!eventsForList.isEmpty()) {
-			FqlEvent nextEvent = eventsForList.remove();
-			if (eventWidgets.containsKey(nextEvent.getEid()))
-				list.add(eventWidgets.get(nextEvent.getEid()));
+			GraphEvent nextEvent = eventsForList.remove();
+			if (eventWidgets.containsKey(nextEvent.getId()))
+				list.add(eventWidgets.get(nextEvent.getId()));
 			else {
 				EventWidget eventWidget = new EventWidget(nextEvent);
-				eventWidgets.put(nextEvent.getEid(), eventWidget);
+				eventWidgets.put(nextEvent.getId(), eventWidget);
 				list.add(eventWidget);
 			}
 		}
 	}
 
-	private HashMap<Long, EventWidget> eventWidgets = new HashMap<Long, EventWidget>();
+	private HashMap<String, EventWidget> eventWidgets = new HashMap<String, EventWidget>();
 
 	@Override
 	public void mapListUpdated() {
@@ -157,8 +156,8 @@ public class FriendsEventsView extends Composite implements FriendsEventsPresent
 	}
 
 	@Override
-	public void setUserLocation(FqlUser user) {
-		eventsMap.setUserLocation(user);
+	public void setUserLocation(String latitude, String longitude) {
+		eventsMap.setUserLocation(latitude, longitude);
 	}
 
 	@Override
